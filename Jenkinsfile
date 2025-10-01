@@ -44,7 +44,7 @@ spec:
                     echo "🔹 Starting Kaniko build..."
                     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                         withCredentials([usernamePassword(
-                            credentialsId: 'b30738c2-998e-4b66-aaf8-462eb6e651a6', 
+                            credentialsId: 'docker-token', 
                             usernameVariable: 'DOCKERHUB_USERNAME', 
                             passwordVariable: 'DOCKERHUB_PASSWORD'
                         )]) {
@@ -79,7 +79,7 @@ EOF
                     echo "🔹 Updating Helm values..."
                     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                         withCredentials([usernamePassword(
-                            credentialsId: '41a9fcbf-6233-428f-9eff-c1e8f4b27790', 
+                            credentialsId: 'git_token', 
                             usernameVariable: 'GIT_USER', 
                             passwordVariable: 'GIT_TOKEN'
                         )]) {
