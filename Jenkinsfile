@@ -6,8 +6,8 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-   - name: docker
-      image: docker:24.0.5  # Docker CLI
+    - name: docker
+      image: docker:24.0.5
       command:
         - cat
       tty: true
@@ -20,10 +20,7 @@ spec:
     - name: git
       image: alpine/git
       command:
-        - /bin/sh
-      args:
-        - -c
-        - sleep 999999
+        - cat
       tty: true
       workingDir: /workspace
       volumeMounts:
