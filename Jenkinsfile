@@ -10,7 +10,10 @@ spec:
      command:
        - /busybox/cat
      tty: true
-     workingDir: /home/jenkins/agent
+     workingDir: /workspace
+     volumeMounts:
+       - name: workspace-volume
+         mountPath: /workspace
    - name: git
      image: alpine/git
      command:
@@ -18,7 +21,13 @@ spec:
        - -c
        - cat
      tty: true
-     workingDir: /home/jenkins/agent 
+     workingDir: /workspace
+        volumeMounts:
+        - name: workspace-volume
+            mountPath: /workspace
+  volumes:
+    - name: workspace-volume
+      emptyDir: {}
 """
     }}
     environment {
@@ -34,6 +43,7 @@ spec:
                     echo "🔹 Checking out source code..."
                     checkout scm
                     echo "✅ Checkout complete."
+                    sh 'ls -la /workspace'  // debug: see if Dockerfile exists
                 }
             }
         }
