@@ -31,7 +31,9 @@ spec:
         stage('Checkout App') {
             steps {
                 container('git') {
+                    echo "🔹 Checking out source code..."
                     checkout scm
+                    echo "✅ Checkout complete."
                 }
             }
         }
@@ -39,12 +41,14 @@ spec:
         stage('Build & Push Docker Image') {
             steps {
                 container('kaniko') {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'b30738c2-998e-4b66-aaf8-462eb6e651a6', 
-                        usernameVariable: 'DOCKERHUB_USERNAME', 
-                        passwordVariable: 'DOCKERHUB_PASSWORD'
-                    )]) {
-                        sh '''#!/bin/sh
+                    echo "🔹 Starting Kaniko build..."
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        withCredentials([usernamePassword(
+                            credentialsId: 'b30738c2-998e-4b66-aaf8-462eb6e651a6', 
+                            usernameVariable: 'DOCKERHUB_USERNAME', 
+                            passwordVariable: 'DOCKERHUB_PASSWORD'
+                        )]) {
+                            sh '''#!/bin/sh
 mkdir -p /workspace/.docker
 cat > /workspace/.docker/config.json <<EOF
 {
@@ -62,7 +66,9 @@ EOF
   --destination $REGISTRY:$IMAGE_TAG \
   --skip-tls-verify=true
 '''
+                        }
                     }
+                    echo "✅ Kaniko build finished."
                 }
             }
         }
@@ -70,14 +76,14 @@ EOF
         stage('Update Helm Values') {
             steps {
                 container('git') {
-                    withCredentials([usernamePassword(
-                        credentialsId: '41a9fcbf-6233-428f-9eff-c1e8f4b27790', 
-                        usernameVariable: 'GIT_USER', 
-                        passwordVariable: 'GIT_TOKEN'
-                    )]) {
-                        script {
-                            try {
-                                sh '''#!/bin/sh
+                    echo "🔹 Updating Helm values..."
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        withCredentials([usernamePassword(
+                            credentialsId: '41a9fcbf-6233-428f-9eff-c1e8f4b27790', 
+                            usernameVariable: 'GIT_USER', 
+                            passwordVariable: 'GIT_TOKEN'
+                        )]) {
+                            sh '''#!/bin/sh
 git config --global user.email "solen0918@gmail.com"
 git config --global user.name "Solen-s"
 rm -rf helm-spring-boot-repo || true
@@ -88,13 +94,9 @@ git add values.yaml
 git commit -m "Update image tag to $IMAGE_TAG" || echo "No changes to commit"
 git push origin main
 '''
-                                echo "✅ Helm values updated successfully."
-                            } catch (err) {
-                                echo "❌ Updating Helm values failed!"
-                                error("Stopping pipeline due to Git/Helm error.")
-                            }
                         }
                     }
+                    echo "✅ Helm values updated successfully."
                 }
             }
         }
@@ -105,7 +107,7 @@ git push origin main
             echo "🎉 Pipeline completed successfully!"
         }
         failure {
-            echo "💥 Pipeline failed. Check logs above."
+            echo "💥 Pipeline failed! Check stage logs above."
         }
     }
 }
