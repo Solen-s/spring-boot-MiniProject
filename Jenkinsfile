@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'jenkins-kaniko-agent' }
+    agent { label 'jenkins-jenkins-agent' }
     tools { 
         maven 'maven'
     }
