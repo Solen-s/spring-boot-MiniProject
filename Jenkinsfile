@@ -1,41 +1,51 @@
 pipeline {
-    agent {     kubernetes {
-      yaml """
+    agent {     
+        kubernetes {
+            yaml """
 apiVersion: v1
 kind: Pod
 spec:
   containers:
-   - name: kaniko
-     image: gcr.io/kaniko-project/executor:debug
-     command:
-       - /busybox/cat
-     tty: true
-     workingDir: /workspace
-     volumeMounts:
-       - name: workspace-volume
-         mountPath: /workspace
-   - name: git
-     image: alpine/git
-     command:
-       - /bin/sh
-       - -c
-       - cat
-     tty: true
-     workingDir: /workspace
-        volumeMounts:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+        - /busybox/sh
+      args:
+        - -c
+        - sleep 999999
+      tty: true
+      workingDir: /workspace
+      volumeMounts:
         - name: workspace-volume
-            mountPath: /workspace
+          mountPath: /workspace
+
+    - name: git
+      image: alpine/git
+      command:
+        - /bin/sh
+      args:
+        - -c
+        - sleep 999999
+      tty: true
+      workingDir: /workspace
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /workspace
+
   volumes:
     - name: workspace-volume
       emptyDir: {}
 """
-    }}
+        }
+    }
+
     environment {
         REGISTRY = "solenn9/spring-boot"
         IMAGE_TAG = "${BUILD_NUMBER}"
         HELM_REPO = "https://github.com/Solen-s/Manifest-Spring-boot.git"
         HELM_VALUES_FILE = "values.yaml"
     }
+
     stages {
         stage('Checkout App') {
             steps {
@@ -59,6 +69,7 @@ spec:
                             passwordVariable: 'DOCKERHUB_PASSWORD'
                         )]) {
                             sh '''#!/bin/sh
+                            pwd
 mkdir -p /workspace/.docker
 cat > /workspace/.docker/config.json <<EOF
 {
@@ -94,6 +105,7 @@ EOF
                             passwordVariable: 'GIT_TOKEN'
                         )]) {
                             sh '''#!/bin/sh
+                               pwd
 git config --global user.email "solen0918@gmail.com"
 git config --global user.name "Solen-s"
 rm -rf helm-spring-boot-repo || true
