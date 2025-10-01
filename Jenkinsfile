@@ -1,8 +1,26 @@
 pipeline {
-    agent { label 'jenkins-jenkins-agent' }
-    tools { 
-        maven 'maven'
-    }
+    agent {     kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+   - name: kaniko
+     image: gcr.io/kaniko-project/executor:debug
+     command:
+       - /busybox/cat
+     tty: true
+     workingDir: /home/jenkins/agent
+   - name: git
+     image: alpine/git
+     command:
+       - /bin/sh
+       - -c
+       - cat
+     tty: true
+     workingDir: /home/jenkins/agent 
+"""
+    }}
     environment {
         REGISTRY = "solenn9/spring-boot"
         IMAGE_TAG = "${BUILD_NUMBER}"
